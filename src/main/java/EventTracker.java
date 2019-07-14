@@ -1,7 +1,7 @@
 import java.util.HashMap;
 import java.util.Map;
 
-public class EventTracker implements Tracker {
+public class EventTracker extends Thread implements Tracker {
 
     private static EventTracker INSTANCE = new EventTracker();
 
@@ -12,17 +12,33 @@ public class EventTracker implements Tracker {
     }
 
     synchronized public static EventTracker getInstance() {
-        return null;
+
+        if (INSTANCE == null) {
+            INSTANCE = new EventTracker();
+        } return INSTANCE;
+    }
+
+    @Override
+    public Map<String, Integer> tracker() {
+        return tracker;
     }
 
     synchronized public void push(String message) {
+        tracker.put(message, 0);
+        tracker.replace(message,tracker.get(message)+1);
     }
 
     synchronized public Boolean has(String message) {
-        return null;
+        if ((tracker.get(message) != null) && tracker.get(message) > 0) {
+        } return true;
     }
 
-    synchronized public void handle(String message, EventHandler e) {
+    synchronized public void handle(String message, EventHandler eventHandler) {
+        eventHandler.handle();
+        if (this.has(message)) {
+            Integer currentValue = tracker.get(message);
+            tracker.replace(message, currentValue - 1);
+        }
     }
 
     // Do not use this. This constructor is for tests only
